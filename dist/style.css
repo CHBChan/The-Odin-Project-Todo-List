@@ -1,0 +1,80 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+.main {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    font-family: 'Bahnschrift', sans-serif;
+}
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    
+    background-color: orange;
+    height: 5%;
+    padding: 0 16px;
+}
+
+.topbar > * {
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.expand {
+    font-size: 32px;
+}
+
+.expand:hover {
+    cursor: pointer;
+}
+
+.sidebar_content {
+    display: flex;
+    height: 95%;
+}
+
+.sidebar_content > div {
+    height: 95%;
+}
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    background-color: rgb(255, 235, 210);
+    z-index: 1;
+    width: 0;
+    left: 0;
+    overflow: hidden;
+    transition: 0.5s;
+}
+
+.sidebar a {
+    display: block;
+    margin: 16px 32px;
+    padding: 8px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: width 0.5s;
+    cursor: pointer;
+    color: rgb(255, 115, 0);
+}
+
+.addProject:hover {
+    background-color: white;
+    color: orange;
+    border-radius: 4px;
+}
+
+.content {
+    padding: 16px;
+    transition: margin-left 0.5s;
+}

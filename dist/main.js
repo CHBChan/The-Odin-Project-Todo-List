@@ -1,0 +1,1 @@
+(()=>{let e=document.querySelector(".expand"),t=document.querySelector(".sidebar"),l=document.querySelector(".content"),n="250px",c=!1;e.addEventListener("click",(()=>{c?(t.style.width=0,l.style.marginLeft=0):(t.style.width=n,l.style.marginLeft=n),c=!c,console.log(c)}))})();
