@@ -17,10 +17,40 @@
         </div>
         <div class="sidebar_content">
             <div class="sidebar">
-                <a class="addProject">+ Project</a>
+                <a class="add_project">+ Project</a>
             </div>
             <div class="content">
                 <p>poop</p>
+            </div>
+        </div>
+        <div class="modal">
+            <div class="modal_content">
+                <p class="form_name">Create new project</p>
+                <form class="project_form">
+                    <label for="project_name">Project Name</label><br>
+                    <input type="text" class="project_name" for="project_name" minlength="1" required>
+                </form>
+                <form class="task_form">
+                    <label for="task_name">Task Name</label><br>
+                    <input type="text" class="task_name" for="task_name" minlength="1" required><br>
+                    <label for="task_desc">Description</label><br>
+                    <input type="text" class="task_desc" for="task_desc"><br>
+                    <div class="date_priority">
+                        <div class="date">
+                            <label for="due_date">Due Date</label><br>
+                            <input type="date" class="due_date" for="due_date" required>
+                        </div>
+                        <div class="prio">
+                            <label for="priority">Priority</label><br>
+                            <select name="priority" class="priority" for="priority">
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+                <button class="submit">Create</button>
             </div>
         </div>
     </div>
