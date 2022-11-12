@@ -5,6 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.cdnfonts.com/css/bahnschrift" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <title>Todo List</title>
 </head>
@@ -17,10 +18,14 @@
         </div>
         <div class="sidebar_content">
             <div class="sidebar">
-                <a class="add_project">+ Project</a>
+                <a class="add_project">Add Project</a>
+                <hr>
+                <div class="project_list">
+
+                </div>
             </div>
             <div class="content">
-                <p>poop</p>
+                
             </div>
         </div>
         <div class="modal">
@@ -42,7 +47,7 @@
                         </div>
                         <div class="prio">
                             <label for="priority">Priority</label><br>
-                            <select name="priority" class="priority" for="priority">
+                            <select name="priority" class="priority" required>
                                 <option value="Low">Low</option>
                                 <option value="Medium">Medium</option>
                                 <option value="High">High</option>

@@ -8,6 +8,7 @@ html, body {
     display: flex;
     flex-direction: column;
     height: 100%;
+    overflow-x: hidden;
 
     font-family: 'Bahnschrift', sans-serif;
 }
@@ -20,6 +21,7 @@ html, body {
     background-color: orange;
     height: 5%;
     padding: 0 16px;
+    user-select: none;
 }
 
 .topbar > * {
@@ -55,6 +57,7 @@ html, body {
     left: 0;
     overflow: hidden;
     transition: 0.5s;
+    user-select: none;
 }
 
 .sidebar a {
@@ -68,15 +71,58 @@ html, body {
     color: rgb(255, 115, 0);
 }
 
-.add_project:hover {
+.sidebar hr {
+    margin: 0;
+    width: 90%;
+    border: 1px solid rgb(255, 115, 0);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.sidebar > a:hover, .project_list > a:hover {
     background-color: white;
     color: orange;
     border-radius: 4px;
 }
 
 .content {
-    padding: 16px;
+    padding: 0 16px;
     transition: margin-left 0.5s;
+    width: 100%;
+}
+
+.project_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    height: 10%;
+    padding: 0px 16px;
+
+    user-select: none;
+}
+
+.project_header > i {
+    margin-right: 32px;
+
+    cursor: pointer;
+}
+
+.wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.wrapper > p {
+    margin: 0;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.wrapper > i {
+    margin-left: 16px;
+
+    cursor: pointer;
 }
 
 .modal {
@@ -147,4 +193,78 @@ label {
 
 input:required:invalid {
     border: 1px dashed red;
+}
+
+.add_task {
+    position: fixed;
+    background-color: orange;
+    color: white;
+    border: none;
+    border-radius: 70%;
+    box-shadow: 0 2px 4px darkslategray;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    margin: 16px 16px;
+    width: 64px;
+    height: 64px;
+    right: 0;
+    bottom: 0;
+}
+
+.add_task:active {
+    background-color: rgb(255, 184, 97);
+    box-shadow: 0 0 2px darkslategray;
+    transform: translateY(2px);
+}
+
+div[class^='task-'] {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 10%;
+    border-radius: 8px;
+    margin: 8px 0;
+    padding: 16px;
+    color: white;
+    user-select: none;
+}
+
+.task_item_name_desc {
+    display: flex;
+    flex-direction: column;
+}
+
+.task_item_name, .task_item_due_date {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.task_item_desc {
+    font-size: 14px;
+    font-style: italic;
+}
+
+.task_item_name_desc > p {
+    margin: 4px 0px;
+}
+
+div[class^='task-'] > i {
+    cursor: pointer;
+}
+
+div[class^='task-'] > .right {
+    margin-left: auto;
+}
+
+.Low {
+    background-color: rgb(252, 201, 107);
+}
+
+.Medium {
+    background-color: orange;
+}
+
+.High {
+    background-color: orangered;
 }

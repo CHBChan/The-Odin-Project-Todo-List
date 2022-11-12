@@ -47,20 +47,25 @@ function createNew() {
     if(project_form.style.display != 'none')
     {
         let project_name = document.querySelector('.project_name').value;
-
-        console.log(`submitted new project ${project_name}`);
         
         let new_project = project_item(project_name);
         project_list.push(new_project);
-        
-        project_list.forEach((proj) => {
-            console.log(proj.getTitle());
-        });
+
+        updateSidebar();
     }
     else if(task_form.style.display != 'none')
     {
-        console.log('submitted new task');
+        let title = document.querySelector('.project_title').innerHTML;
+        let idx = project_list.findIndex(project => project.getTitle() === title);
+        
+        let task_name = document.querySelector('.task_name').value;
+        let task_desc = document.querySelector('.task_desc').value;
+        let due_date = document.querySelector('.due_date').value;
+        let priority = document.querySelector('.priority').value;
 
+        project_list[idx].addTask(task_name, task_desc, due_date, priority);
+
+        openTasks(title);
     }
     else
     {
@@ -72,8 +77,156 @@ function createNew() {
 
 function updateSidebar() {
 
-    let sidebar = document.querySelector('sidebar');
+    let sidebar = document.querySelector('.project_list');
+
+    sidebar.innerHTML = '';
+    project_list.forEach((project) => {
+        
+        let link = document.createElement('a');
+        link.setAttribute('class', 'project-' + project.getTitle());
+        link.innerHTML = project.getTitle();
+
+        link.addEventListener('click', (event) => {
+            
+            openTasks(event.target.className.replace('project-', ''));
+        })
+
+        sidebar.appendChild(link);
+    });
+}
+
+function updateTaskList() {
+
+    let title = document.querySelector('.project_title').innerHTML;
+    let idx = project_list.findIndex(project => project.getTitle() === title);
+
+    let content = document.querySelector('.content');
+
+    project_list[idx].getTasks().forEach((task) => {
+
+        let div = document.createElement('div');
+        div.setAttribute('class', 'task-' + task.getTitle());
+
+        let checkbox = document.createElement('i');
+        checkbox.setAttribute('class', 'material-icons');
+        if(!task.getCompletion())
+            checkbox.innerHTML = 'check_box_outline_blank';
+        else
+            checkbox.innerHTML = 'check_box';
+        
+        checkbox.addEventListener('click', () => {
+
+            checkbox.innerHTML = 'check_box';
+            task.completeTask();
+        });
+
+        let name_desc = document.createElement('div');
+        name_desc.setAttribute('class', 'task_item_name_desc');
+
+        let task_name = document.createElement('p');
+        task_name.setAttribute('class', 'task_item_name');
+        task_name.innerHTML = task.getTitle();
+
+        name_desc.appendChild(task_name);
+
+        // Append description if entered
+        if(task.getDesc()) 
+        {
+            let task_desc = document.createElement('p');
+            task_desc.setAttribute('class', 'task_item_desc');
+            task_desc.innerHTML = task.getDesc();
+            name_desc.appendChild(task_desc);
+        }
+
+        let due_date = document.createElement('p');
+        due_date.setAttribute('class', 'task_item_due_date');
+        due_date.innerHTML = `Due: ${task.getDueDate()}`;
+
+        div.classList.add(task.getPriority());
+
+        let edit = document.createElement('i');
+        edit.setAttribute('class', 'material-icons');
+        edit.innerHTML = 'edit';
+
+        let close = document.createElement('i');
+        close.setAttribute('class', 'material-icons');
+        close.classList.add('right');
+        close.innerHTML = 'close';
+
+        close.addEventListener('click', () => {
+
+            project_list[idx].removeTask(task.getTitle());
+            openTasks(title);
+        });
+
+        div.appendChild(checkbox);
+        div.appendChild(name_desc);
+        div.appendChild(due_date);
+        div.appendChild(edit);
+        div.appendChild(close);
+
+        content.appendChild(div);
+    });
+}
+
+function openTasks(title) {
     
+    let content = document.querySelector('.content');
+    let idx = project_list.findIndex(project => project.getTitle() === title);
+
+    content.innerHTML = '';
+
+    let header = document.createElement('div');
+    header.setAttribute('class', 'project_header');
+
+    let wrap = document.createElement('div');
+    wrap.setAttribute('class', 'wrapper')
+
+    let project_name = document.createElement('p');
+    project_name.setAttribute('class', 'project_title');
+    project_name.innerHTML = title;
+
+    let edit_icon = document.createElement('i');
+    edit_icon.setAttribute('class', 'material-icons');
+    edit_icon.innerHTML = 'edit';
+
+    wrap.appendChild(project_name);
+    wrap.appendChild(edit_icon);
+
+    let delete_icon = document.createElement('i');
+    delete_icon.setAttribute('class', 'material-icons');
+    delete_icon.innerHTML = 'delete';
+
+    delete_icon.addEventListener('click', () => {
+
+        project_list.splice(idx, 1);
+        updateSidebar();
+        content.innerHTML = '';
+    });
+
+    header.appendChild(wrap);
+    header.appendChild(delete_icon);
+
+    content.append(header);
+
+
+    let add_task = document.createElement('button');
+    add_task.setAttribute('class', 'material-icons add_task');
+    add_task.innerHTML = 'add';
+
+    add_task.addEventListener('click', () => {
+
+        showForm('task');
+    });
+
+    content.append(add_task);
+
+    updateTaskList();
+}
+
+function removeProject(title) {
+
+    project_list.filter(project => project.getTitle() != title);
 }
 
 const project_item = (title) => {
@@ -89,11 +242,22 @@ const project_item = (title) => {
         task_list.push(new_task);
     };
 
-    const removeTask = (title, description, dueDate, priority) => {
-
+    const editTitle = (new_title) => {
+        title = new_title;
     };
 
-    return { getTitle, getTasks, addTask, removeTask };
+    const removeTask = (task_title) => {
+        
+        let idx = task_list.findIndex(task => task.getTitle() === task_title);
+        task_list.splice(idx, 1);
+    };
+
+    const findTask = (title) => {
+
+        return task_list.find(task => task.getTitle() === title);
+    };
+
+    return { getTitle, getTasks, addTask, removeTask, findTask, editTitle };
 };
 
 const task_item = (title, description, dueDate, priority) => {
@@ -107,6 +271,7 @@ const task_item = (title, description, dueDate, priority) => {
     const getCompletion = () => complete;
 
     const completeTask = () => {
+
         complete = true;
     };
 
@@ -145,7 +310,6 @@ expandBtn.addEventListener('click', () => {
         content.style.marginLeft = 0;
     }
     expand = !expand;
-    console.log(expand);
 });
 
 let modal = document.querySelector('.modal');
@@ -153,6 +317,7 @@ let project_form = document.querySelector('.project_form');
 let task_form = document.querySelector('.task_form');
 
 modal.addEventListener('click', (event) => {
+
     if(event.target.className === 'modal')
     {
         hideForm();
@@ -163,6 +328,7 @@ modal.addEventListener('click', (event) => {
 let addProj = document.querySelector('.add_project');
 
 addProj.addEventListener('click', () => {
+
     showForm('project');
 });
 
@@ -179,20 +345,39 @@ submit.addEventListener('click', () => {
             alert('The project name must have at least one character.');
             return;
         }
+        else if(project_list.find(project => project.getTitle() === project_name))
+        {
+            alert('This project name already exists.')
+            return;
+        }
     }
     else if(task_form.style.display != 'none')
     {
+        let title = document.querySelector('.project_title').innerHTML;
+        let idx = project_list.findIndex(project => project.getTitle() === title);
+
         let task_name = document.querySelector('.task_name').value;
         let due_date = document.querySelector('.due_date').value;
+        let priority = document.querySelector('.priority').value;
 
         if(task_name.length < 1)
         {
             alert('The task name must have at least one character.');
             return;
         }
+        else if(project_list[idx].getTasks().find(task => task.getTitle() === task_name))
+        {
+            alert('This task name already exists in this project.')
+            return;
+        }
         else if(!isNaN(due_date))
         {
             alert('The date entered is invalid.');
+            return;
+        }
+        else if(!priority)
+        {
+            alert('Please select the task priority.');
             return;
         }
     }
