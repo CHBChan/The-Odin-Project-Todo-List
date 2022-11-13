@@ -125,7 +125,7 @@ html, body {
     cursor: pointer;
 }
 
-.modal {
+.modal, .edit_modal {
     display: none;
     justify-content: center;
     align-items: center;
@@ -136,7 +136,7 @@ html, body {
     background-color: rgba(0, 0, 0, 0.4);
 }
 
-.modal_content {
+.modal_content, .edit_modal_content {
     display: flex;
     flex-direction: column;
     background-color: white;
@@ -159,12 +159,12 @@ label {
     margin-top: 8px;
 }
 
-.modal_content > form > input {
+.modal_content > form > input, .edit_modal_content > form > input {
     margin-top: 4px;
     border-radius: 4px;
 }
 
-.modal_content > button {
+.modal_content > button, .edit_modal_content > button {
     background-color: orange;
     border: 0;
     border-radius: 4px;

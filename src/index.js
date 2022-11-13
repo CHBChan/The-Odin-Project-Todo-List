@@ -1,3 +1,21 @@
+// Returns the current project's title
+function getProjectTitle() {
+
+    if(document.querySelector('.project_title'))
+        return document.querySelector('.project_title').innerHTML;
+    else
+        return document.querySelector('.name_input').value;
+}
+
+// Returns the current project's index with respect to the list of projects
+function getProjectIdx() {
+
+    let title = getProjectTitle();
+
+    return project_list.findIndex(project => project.getTitle() === title);
+}
+
+// Shows the project / task form
 function showForm(type) {
 
     let form_name = document.querySelector('.form_name');
@@ -22,11 +40,69 @@ function showForm(type) {
     }
 }
 
+// Shows the edit task form
+function showEditForm(task_idx, title, description, due_date, priority) {
+
+    let modal = document.querySelector('.edit_modal');
+
+    let idx = getProjectIdx();
+
+    let name = document.querySelector('.edit_task_name');
+    let desc = document.querySelector('.edit_task_desc');
+    let date = document.querySelector('.edit_due_date');
+    let prio = document.querySelector('.edit_priority');
+
+    name.value = title;
+    desc.value = description;
+    date.value = due_date;
+    prio.value = priority;
+
+    modal.style.display = 'flex';
+
+    info = taskInfo(idx, task_idx);
+}
+
+// Updates the project_list to localStorage
+function updateProjectList() {
+
+    localStorage.setItem('project_list', JSON.stringify(project_list));
+    console.log(project_list);
+}
+
+// Calls project_list[idx] task_list[task_idx] to be editted
+function submitEdit(idx, task_idx, name, desc, date, prio) {
+
+    let modal = document.querySelector('.edit_modal');
+
+    project_list[idx].editTask(task_idx, name.value, desc.value, date.value, prio.value);
+    
+    // Reset edit form
+    modal.style.display = 'none';
+    name.value = '';
+    desc.value = '';
+    date.value = '';
+    prio.value = '';
+
+    // Update task list
+    openTasks(getProjectTitle());
+}
+
+// Stores the current project and task being editted
+const taskInfo = (idx, task_idx) => {
+
+    const getProjectIdx = () => idx;
+    const getTaskIdx = () => task_idx;
+
+    return { getProjectIdx, getTaskIdx };
+}
+
+// Hides modal
 function hideForm() {
 
     modal.style.display = 'none';
 }
 
+// Resets the project / task form
 function resetForm() {
 
     let project_name = document.querySelector('.project_name');
@@ -42,6 +118,7 @@ function resetForm() {
     priority.value = '';
 }
 
+// Creates and adds project / task to respective list
 function createNew() {
 
     if(project_form.style.display != 'none')
@@ -55,8 +132,7 @@ function createNew() {
     }
     else if(task_form.style.display != 'none')
     {
-        let title = document.querySelector('.project_title').innerHTML;
-        let idx = project_list.findIndex(project => project.getTitle() === title);
+        let idx = getProjectIdx();
         
         let task_name = document.querySelector('.task_name').value;
         let task_desc = document.querySelector('.task_desc').value;
@@ -65,7 +141,7 @@ function createNew() {
 
         project_list[idx].addTask(task_name, task_desc, due_date, priority);
 
-        openTasks(title);
+        openTasks(getProjectTitle());
     }
     else
     {
@@ -75,6 +151,7 @@ function createNew() {
     resetForm();
 }
 
+// Updates the sidebar to reflect the added project
 function updateSidebar() {
 
     let sidebar = document.querySelector('.project_list');
@@ -82,6 +159,7 @@ function updateSidebar() {
     sidebar.innerHTML = '';
     project_list.forEach((project) => {
         
+        console.log(project);
         let link = document.createElement('a');
         link.setAttribute('class', 'project-' + project.getTitle());
         link.innerHTML = project.getTitle();
@@ -95,10 +173,10 @@ function updateSidebar() {
     });
 }
 
+// Only open from within openTask()!!
 function updateTaskList() {
 
-    let title = document.querySelector('.project_title').innerHTML;
-    let idx = project_list.findIndex(project => project.getTitle() === title);
+    let idx = getProjectIdx();
 
     let content = document.querySelector('.content');
 
@@ -148,6 +226,12 @@ function updateTaskList() {
         edit.setAttribute('class', 'material-icons');
         edit.innerHTML = 'edit';
 
+        edit.addEventListener('click', () => {
+
+            let task_idx = project_list[idx].findTaskIndex(task.getTitle());
+            showEditForm(task_idx, task.getTitle(), task.getDesc(), task.getDueDate(), task.getPriority());
+        });
+
         let close = document.createElement('i');
         close.setAttribute('class', 'material-icons');
         close.classList.add('right');
@@ -169,6 +253,7 @@ function updateTaskList() {
     });
 }
 
+// Updates the visual task list to that of a given project
 function openTasks(title) {
     
     let content = document.querySelector('.content');
@@ -189,6 +274,41 @@ function openTasks(title) {
     let edit_icon = document.createElement('i');
     edit_icon.setAttribute('class', 'material-icons');
     edit_icon.innerHTML = 'edit';
+
+    edit_icon.addEventListener('click', () => {
+
+        if(edit_icon.innerHTML === 'edit')
+        {
+            edit_icon.innerHTML = 'save';
+
+            let input = document.createElement('input');
+            input.setAttribute('class', 'name_input');
+            input.value = project_name.innerHTML;
+
+            project_name.replaceWith(input);
+        }
+        else
+        {
+            let new_name = document.querySelector('.name_input');
+
+            if(project_list.findIndex(task => task.getTitle() === new_name.value) === idx || project_list.findIndex(task => task.getTitle() === new_name.value) === -1)
+            {
+                edit_icon.innerHTML = 'edit';
+
+                project_list[idx].editTitle(new_name.value);
+                
+                openTasks(new_name.value);
+                updateSidebar();
+
+                // Update localStorage
+                updateProjectList();
+            }
+            else
+            {
+                alert('This project name already exists.');
+            }
+        }
+    });
 
     wrap.appendChild(project_name);
     wrap.appendChild(edit_icon);
@@ -224,11 +344,13 @@ function openTasks(title) {
     updateTaskList();
 }
 
+// Removes a project from the list of projects
 function removeProject(title) {
 
     project_list.filter(project => project.getTitle() != title);
 }
 
+// Factory function for projects
 const project_item = (title) => {
 
     let task_list = [];
@@ -257,9 +379,20 @@ const project_item = (title) => {
         return task_list.find(task => task.getTitle() === title);
     };
 
-    return { getTitle, getTasks, addTask, removeTask, findTask, editTitle };
+    const findTaskIndex = (title) => {
+
+        return task_list.findIndex(task => task.getTitle() === title);
+    };
+
+    const editTask = (idx, new_title, new_desc, new_date, new_priority) => {
+
+        task_list[idx].editTask(new_title, new_desc, new_date, new_priority);
+    };
+
+    return { getTitle, getTasks, addTask, removeTask, findTask, findTaskIndex, editTitle, editTask };
 };
 
+// Factory function for tasks
 const task_item = (title, description, dueDate, priority) => {
 
     let complete = false;
@@ -275,17 +408,33 @@ const task_item = (title, description, dueDate, priority) => {
         complete = true;
     };
 
-    return { getTitle, getDesc, getDueDate, getPriority, getCompletion, completeTask };
+    const editTask = (new_title, new_desc, new_date, new_priority) => {
+
+        if(!new_title || !new_date || !new_priority) return;
+
+        title = new_title;
+        description = new_desc;
+        dueDate = new_date;
+        priority = new_priority;
+    };
+
+    return { getTitle, getDesc, getDueDate, getPriority, getCompletion, completeTask, editTask };
 };
+
+localStorage.clear();
 
 /* Load list of projects from the Web Storage API */
 let project_list;
 if(localStorage['project_list'])
 {
-    project_list = localStorage['project_list'];
+    console.log('list retrieved');
+    project_list = JSON.parse(localStorage.getItem('project_list'));
+
+    updateSidebar();
 }
 else
 {
+    console.log('no list found');
     project_list = [];
 }
 /*==================== END LOAD ==================*/
@@ -297,6 +446,7 @@ let content = document.querySelector('.content');
 let sidebarWidth = '250px';
 let expand = false
 
+/* Sidebar expand logic */
 expandBtn.addEventListener('click', () => {
 
     if(!expand)
@@ -311,6 +461,7 @@ expandBtn.addEventListener('click', () => {
     }
     expand = !expand;
 });
+/*======================*/
 
 let modal = document.querySelector('.modal');
 let project_form = document.querySelector('.project_form');
@@ -332,6 +483,7 @@ addProj.addEventListener('click', () => {
     showForm('project');
 });
 
+/* New project / task submit button logic */
 let submit = document.querySelector('.submit');
 
 submit.addEventListener('click', () => {
@@ -347,14 +499,13 @@ submit.addEventListener('click', () => {
         }
         else if(project_list.find(project => project.getTitle() === project_name))
         {
-            alert('This project name already exists.')
+            alert('This project name already exists.');
             return;
         }
     }
     else if(task_form.style.display != 'none')
     {
-        let title = document.querySelector('.project_title').innerHTML;
-        let idx = project_list.findIndex(project => project.getTitle() === title);
+        let idx = getProjectIdx();
 
         let task_name = document.querySelector('.task_name').value;
         let due_date = document.querySelector('.due_date').value;
@@ -365,7 +516,7 @@ submit.addEventListener('click', () => {
             alert('The task name must have at least one character.');
             return;
         }
-        else if(project_list[idx].getTasks().find(task => task.getTitle() === task_name))
+        else if(project_list[idx].findTask(task_name))
         {
             alert('This task name already exists in this project.')
             return;
@@ -382,4 +533,46 @@ submit.addEventListener('click', () => {
         }
     }
     createNew();
+
+    // Update localStorage
+    updateProjectList();
 });
+/* ====================================== */
+
+let edit_modal = document.querySelector('.edit_modal');
+
+edit_modal.addEventListener('click', (event) => {
+
+    if(event.target.className === 'edit_modal')
+    {
+        let task_name = document.querySelector('.edit_task_name');
+        let task_desc = document.querySelector('.edit_task_desc');
+        let due_date = document.querySelector('.edit_due_date');
+        let priority = document.querySelector('.edit_priority');
+
+        task_name.value = '';
+        task_desc.value = '';
+        due_date.value = '';
+        priority.value = '';
+
+        edit_modal.style.display = 'none';
+    }
+});
+
+/* Edit task logic */
+let info;
+let edit = document.querySelector('.edit_submit');
+
+edit.addEventListener('click', () => {
+
+    let name = document.querySelector('.edit_task_name');
+    let desc = document.querySelector('.edit_task_desc');
+    let date = document.querySelector('.edit_due_date');
+    let prio = document.querySelector('.edit_priority');
+
+    submitEdit(info.getProjectIdx(), info.getTaskIdx(), name, desc, date, prio);
+    
+    // Update localStorage
+    updateProjectList();
+});
+/* ============== */
