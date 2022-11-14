@@ -65,8 +65,12 @@ function showEditForm(task_idx, title, description, due_date, priority) {
 // Updates the project_list to localStorage
 function updateProjectList() {
 
-    localStorage.setItem('project_list', JSON.stringify(project_list));
-    console.log(project_list);
+    let list_package = {};
+    project_list.forEach((project) => {
+
+        list_package[project.getTitle()] = project.toJSON();
+    });
+    localStorage.setItem('project_list', JSON.stringify(list_package));
 }
 
 // Calls project_list[idx] task_list[task_idx] to be editted
@@ -159,7 +163,6 @@ function updateSidebar() {
     sidebar.innerHTML = '';
     project_list.forEach((project) => {
         
-        console.log(project);
         let link = document.createElement('a');
         link.setAttribute('class', 'project-' + project.getTitle());
         link.innerHTML = project.getTitle();
@@ -177,6 +180,7 @@ function updateSidebar() {
 function updateTaskList() {
 
     let idx = getProjectIdx();
+    let title = getProjectTitle();
 
     let content = document.querySelector('.content');
 
@@ -196,6 +200,9 @@ function updateTaskList() {
 
             checkbox.innerHTML = 'check_box';
             task.completeTask();
+
+            // Update localStorage
+            updateProjectList();
         });
 
         let name_desc = document.createElement('div');
@@ -241,6 +248,9 @@ function updateTaskList() {
 
             project_list[idx].removeTask(task.getTitle());
             openTasks(title);
+
+            // Update localStorage
+            updateProjectList();
         });
 
         div.appendChild(checkbox);
@@ -322,6 +332,9 @@ function openTasks(title) {
         project_list.splice(idx, 1);
         updateSidebar();
         content.innerHTML = '';
+
+        // Update localStorage
+        updateProjectList();
     });
 
     header.appendChild(wrap);
@@ -358,9 +371,9 @@ const project_item = (title) => {
     const getTitle = () => title;
     const getTasks = () => task_list;
 
-    const addTask = (title, description, dueDate, priority) => {
+    const addTask = (title, description, dueDate, priority, complete = false) => {
         
-        let new_task = task_item(title, description, dueDate, priority);
+        let new_task = task_item(title, description, dueDate, priority, complete);
         task_list.push(new_task);
     };
 
@@ -389,13 +402,24 @@ const project_item = (title) => {
         task_list[idx].editTask(new_title, new_desc, new_date, new_priority);
     };
 
-    return { getTitle, getTasks, addTask, removeTask, findTask, findTaskIndex, editTitle, editTask };
+    // This function repackages the project_item to be suitable for JSON.Stringify()
+    const toJSON = () => {
+
+        let project_package = {};
+        task_list.forEach((task) => {
+
+            project_package[task.getTitle()] = task.toJSON();
+        });
+        return project_package;
+    };
+
+    return { getTitle, getTasks, addTask, removeTask, findTask, findTaskIndex, editTitle, editTask, toJSON };
 };
 
 // Factory function for tasks
-const task_item = (title, description, dueDate, priority) => {
+const task_item = (title, description, dueDate, priority, completion = false) => {
 
-    let complete = false;
+    let complete = completion;
 
     const getTitle = () => title;
     const getDesc = () => description;
@@ -418,17 +442,33 @@ const task_item = (title, description, dueDate, priority) => {
         priority = new_priority;
     };
 
-    return { getTitle, getDesc, getDueDate, getPriority, getCompletion, completeTask, editTask };
+    // This function repackages the task_item to be suitable for JSON.Stringify()
+    const toJSON = () => {
+
+        let task_package = { title: getTitle(), desc: getDesc(), dueDate: getDueDate(), priority: getPriority(), complete: getCompletion() };
+        return task_package;
+    };
+
+    return { getTitle, getDesc, getDueDate, getPriority, getCompletion, completeTask, editTask, toJSON };
 };
 
-localStorage.clear();
-
 /* Load list of projects from the Web Storage API */
-let project_list;
+let project_list = [];
 if(localStorage['project_list'])
 {
-    console.log('list retrieved');
-    project_list = JSON.parse(localStorage.getItem('project_list'));
+    let list_package = JSON.parse(localStorage.getItem('project_list'));
+
+    // Process the retrieved list package to recreate the list of projects
+    for(const [project_name, task_list] of Object.entries(list_package)) {
+
+        let project = project_item(project_name);
+
+        for(const [task_name, task_properties] of Object.entries(task_list)) {
+
+            project.addTask(task_properties.title, task_properties.desc, task_properties.dueDate, task_properties.priority, task_properties.complete);
+        }
+        project_list.push(project);
+    }
 
     updateSidebar();
 }
@@ -565,10 +605,33 @@ let edit = document.querySelector('.edit_submit');
 
 edit.addEventListener('click', () => {
 
+    let idx = getProjectIdx();
+
     let name = document.querySelector('.edit_task_name');
     let desc = document.querySelector('.edit_task_desc');
     let date = document.querySelector('.edit_due_date');
     let prio = document.querySelector('.edit_priority');
+
+    if(name.value.length < 1)
+    {
+        alert('The task name must have at least one character.');
+        return;
+    }
+    else if(project_list[idx].findTask(name.value))
+    {
+        alert('This task name already exists in this project.')
+        return;
+    }
+    else if(!isNaN(date.value))
+    {
+        alert('The date entered is invalid.');
+        return;
+    }
+    else if(!prio.value)
+    {
+        alert('Please select the task priority.');
+        return;
+    }
 
     submitEdit(info.getProjectIdx(), info.getTaskIdx(), name, desc, date, prio);
     
